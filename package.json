@@ -1,0 +1,20 @@
+{
+  "name": "doc-versions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "author": "jaumarar",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "*",
+    "lodash": "*",
+    "normalize-url": "*",
+    "request": "*",
+    "sequelize": "*",
+    "sqlite3": "*",
+    "dotenv": "*",
+    "restify": "*",
+    "restify-cors-middleware": "*",
+    "restify-errors": "*"
+  }
+}
