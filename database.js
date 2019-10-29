@@ -24,7 +24,7 @@ const database = {
             content: Sequelize.STRING
         }
     },
-    'sequelize': {}
+    sequelize
 };
 
 
@@ -36,5 +36,7 @@ database.sync = function() {
     // {force: true}
     return sequelize.sync();
 };
+
+
 
 module.exports = database;

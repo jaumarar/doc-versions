@@ -60,6 +60,7 @@ module.exports = {
             server.listen(PORT, () => {
                 console.log(`http://localhost:${PORT}/update/BookingCom`);
                 console.log(`http://localhost:${PORT}/diffs/BookingCom`);
+                console.log(`http://localhost:${PORT}/clear/BookingCom`);
 
                 resolve();
             });
