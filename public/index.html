@@ -21,6 +21,10 @@
         background-color: #fbb6c2;
         color: #555;
     }
+
+    .diff {
+        font-size: 9px !important;
+    }
 </style>
     <script>
 
@@ -47,16 +51,19 @@
         };
 
         async function run() {
-            const { BookingCom } = await http.bk_bookingcom();
+            const portals = await http.bk_bookingcom();
 
-            for (const [category, links] of Object.entries(BookingCom)) {
-                for (const [link, diffs] of Object.entries(links)) {
-                    output(category, link, diffs);
+            for (const [name, portal] of Object.entries(portals)) {
+                for (const [category, links] of Object.entries(portal)) {
+                    for (const [link, diffs] of Object.entries(links)) {
+                        output(category, link, diffs);
+                    }
                 }
             }
         }
 
         function output(category, link, diffs) {
+            console.log(link);
             for (let i = 0; i <= diffs.length; i++) {
                 if (!diffs[i+1]) {
                     break;
@@ -67,7 +74,13 @@
                 const id = `diff-${link}-${i}`;
 
                 // Create the element
-                $('body').append(`<h4>${category} - ${link}</h4><div id="${id}"></div>`);
+                $('body').append(`
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">${category} - ${link}</h5>
+        <div class="diff" id="${id}"></div>
+    </div>
+</div>`);
 
                 // Fill it
                 let output = htmldiff(now.content, before.content);
