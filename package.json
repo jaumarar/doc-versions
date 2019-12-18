@@ -5,16 +5,85 @@
   "main": "app.js",
   "author": "jaumarar",
   "license": "ISC",
+  "scripts": {
+    "start": "node app.js",
+    "pretest": "xo",
+    "lint": "xo",
+    "lint:ci": "xo --reporter=checkstyle > checkstyle.xml"
+  },
   "dependencies": {
+    "app-module-path": "^2.2",
     "cheerio": "*",
+    "dotenv": "*",
     "lodash": "*",
     "normalize-url": "*",
     "request": "*",
-    "sequelize": "*",
-    "sqlite3": "*",
-    "dotenv": "*",
     "restify": "*",
     "restify-cors-middleware": "*",
-    "restify-errors": "*"
+    "restify-errors": "*",
+    "sequelize": "*",
+    "sqlite3": "*"
+  },
+  "devDependencies": {
+    "xo": "*"
+  },
+  "xo": {
+    "space": true,
+    "ignores": [
+      "jest.config.js"
+    ],
+    "envs": [
+      "jest"
+    ],
+    "rules": {
+      "capitalized-comments": [
+        "off"
+      ],
+      "no-unused-vars": [
+        "error",
+        {
+          "ignoreRestSiblings": true,
+          "args": "none"
+        }
+      ],
+      "no-warning-comments": [
+        0
+      ],
+      "arrow-parens": [
+        "error",
+        "always"
+      ],
+      "object-shorthand": [
+        "off"
+      ],
+      "unicorn/catch-error-name": [
+        "off"
+      ],
+      "object-curly-spacing": [
+        "error",
+        "always"
+      ],
+      "newline-before-return": "error",
+      "padding-line-between-statements": [
+        "error",
+        {
+          "blankLine": "always",
+          "prev": "*",
+          "next": [
+            "for",
+            "if"
+          ]
+        }
+      ]
+    },
+    "settings": {
+      "import/resolver": {
+        "node": {
+          "paths": [
+            "./"
+          ]
+        }
+      }
+    }
   }
 }

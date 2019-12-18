@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Booking.com",
+    "code": "bcom",
+    "table": "contents",
+    "contentSelector": ".content-inner",
+    "baseUri": "https://connect.booking.com/user_guide/site/en-US/",
+    "categories": [
+      {
+        "name": "content",
+        "linksSelector": ".secondary-sidebar #Content a",
+        "uri": "/content/"
+      },
+      {
+        "name": "ari",
+        "linksSelector": ".secondary-sidebar #Rates a",
+        "uri": "/ari/"
+      },
+      {
+        "name": "api",
+        "linksSelector": ".secondary-sidebar #APIReference a",
+        "uri": "/api-reference/"
+      }
+    ]
+  }
+]

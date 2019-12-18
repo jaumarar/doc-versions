@@ -1,80 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title></title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <meta charset="UTF-8">
+  <title></title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css"/>
 
-    <script src="htmldiff.js"></script>
-<style>
+  <script src="htmldiff.js"></script>
+  <style>
     ins {
-        text-decoration: none;
-        background-color: #d4fcbc;
+      text-decoration: none;
+      background-color: #d4fcbc;
     }
 
     del {
-        text-decoration: line-through;
-        background-color: #fbb6c2;
-        color: #555;
+      text-decoration: line-through;
+      background-color: #fbb6c2;
+      color: #555;
     }
 
     .diff {
-        font-size: 9px !important;
+      font-size: 9px !important;
     }
-</style>
-    <script>
+  </style>
+  <script>
 
-        const ENDPOINT = 'http://10.8.100.175:9890';
+    const ENDPOINT = 'http://10.8.100.175:9890';
 
-        function get(path, isXml = false) {
-            const dataType = isXml ? 'xml' : 'json';
+    function get(path, isXml = false) {
+      const dataType = isXml ? 'xml' : 'json';
 
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    url: ENDPOINT + path,
-                    dataType
-                })
-                    .always((data, status) => {
-                        resolve(data);
-                    });
-            })
+      return new Promise((resolve, reject) => {
+        $.ajax({
+          url: ENDPOINT + path,
+          dataType
+        })
+          .always((data, status) => {
+            resolve(data);
+          });
+      })
+    }
+
+    const http = {
+      bk_bookingcom: async () => {
+        return get(`/diffs/BookingCom`);
+      }
+    };
+
+    async function run() {
+      const portals = await http.bk_bookingcom();
+
+      for (const [name, portal] of Object.entries(portals)) {
+        for (const [category, links] of Object.entries(portal)) {
+          for (const [link, diffs] of Object.entries(links)) {
+            output(category, link, diffs);
+          }
+        }
+      }
+    }
+
+    function output(category, link, diffs) {
+      console.log(link);
+      for (let i = 0; i <= diffs.length; i++) {
+        if (!diffs[i + 1]) {
+          break;
         }
 
-        const http = {
-            bk_bookingcom: async () => {
-                return get(`/diffs/BookingCom`);
-            }
-        };
+        const now = diffs[i];
+        const before = diffs[i + 1];
+        const id = `diff-${link}-${i}`;
 
-        async function run() {
-            const portals = await http.bk_bookingcom();
-
-            for (const [name, portal] of Object.entries(portals)) {
-                for (const [category, links] of Object.entries(portal)) {
-                    for (const [link, diffs] of Object.entries(links)) {
-                        output(category, link, diffs);
-                    }
-                }
-            }
-        }
-
-        function output(category, link, diffs) {
-            console.log(link);
-            for (let i = 0; i <= diffs.length; i++) {
-                if (!diffs[i+1]) {
-                    break;
-                }
-
-                const now = diffs[i];
-                const before = diffs[i+1];
-                const id = `diff-${link}-${i}`;
-
-                // Create the element
-                $('body').append(`
+        // Create the element
+        $('body').append(`
 <div class="card">
     <div class="card-body">
         <h5 class="card-title">${category} - ${link}</h5>
@@ -82,18 +82,18 @@
     </div>
 </div>`);
 
-                // Fill it
-                let output = htmldiff(now.content, before.content);
-                document.getElementById(id).innerHTML = output;
-            }
+        // Fill it
+        let output = htmldiff(now.content, before.content);
+        document.getElementById(id).innerHTML = output;
+      }
 
 
-        }
+    }
 
-        $(function () {
-            run();
-        });
-    </script>
+    $(function () {
+      run();
+    });
+  </script>
 </head>
 <body>
 </body>
