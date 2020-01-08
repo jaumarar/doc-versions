@@ -20,4 +20,9 @@ server.use(cors.actual);
 
 require('routes')(server);
 
+server.get('/*', restify.plugins.serveStatic({
+  directory: process.cwd() + '/public',
+  default: 'index.html'
+}));
+
 module.exports = server;

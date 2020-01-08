@@ -31,8 +31,6 @@ class HtmlResourcesProvider extends ResourcesProvider {
           content
         });
       }
-
-      break;
     }
 
     return contents;

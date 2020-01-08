@@ -35,11 +35,22 @@ async function pull(resourceCode) {
   return contents;
 }
 
+async function getPullList(resourceCode) {
+  const pulls = await database.get().Pull.findAll({
+    include: [{
+      model: database.get().Resource,
+      where: { code: resourceCode }
+    }]
+  });
+
+  return pulls;
+}
+
 async function compare(pullId1, pullId2) {
   const pull1 = await database.get().Content.findAll( { where: { PullId: pullId1 } });
   const pull2 = await database.get().Content.findAll( { where: { PullId: pullId2 } });
 
-  const areEquals = pull1.filter((content1) => pull2.some((content2) => content1.category === content2.category && content1.url === content2.url && content1.sha256 === content2.sha256));
+  // const areEquals = pull1.filter((content1) => pull2.some((content2) => content1.category === content2.category && content1.url === content2.url && content1.sha256 === content2.sha256));
 
   const areDiffs = pull1.reduce((diffs, content1) => {
     const content2 = pull2.find((content2) => content1.category === content2.category && content1.url === content2.url && content1.sha256 !== content2.sha256);
@@ -59,14 +70,15 @@ async function compare(pullId1, pullId2) {
   const areNew = pull2.filter((content2) => !pull1.some((content1) => content1.category === content2.category && content1.url === content2.url));
 
   return {
-    areEquals,
-    areDiffs,
-    areRemoved,
-    areNew
+    // areEquals,
+    diffs: areDiffs,
+    removed: areRemoved,
+    new: areNew
   };
 }
 
 module.exports = {
+  getPullList,
   pull,
   compare
 };

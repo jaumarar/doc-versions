@@ -10,6 +10,15 @@ async function pull(req, res) {
   return res.send(await services.pull(resource));
 }
 
+async function getPullList(req, res) {
+  const {
+    resource
+  } = req.params;
+  res.header('content-type', 'json');
+
+  return res.send(await services.getPullList(resource));
+}
+
 async function compare(req, res) {
   const {
     pullId1,
@@ -22,5 +31,6 @@ async function compare(req, res) {
 
 module.exports = (server) => {
   server.get('/pull/:resource', pull);
+  server.get('/pulls/:resource', getPullList);
   server.get('/compare/:pullId1/:pullId2', compare);
 };

@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title></title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.min.js"></script>
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css"/>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css"/>
   <script src="htmldiff.js"></script>
   <style>
     ins {
@@ -26,75 +25,168 @@
       font-size: 9px !important;
     }
   </style>
-  <script>
+    <script>
+      const ENDPOINT = 'http://localhost:9890';
 
-    const ENDPOINT = 'http://10.8.100.175:9890';
+      async function ajax(url, method = 'GET') {
+        return new Promise((resolve, reject) => {
+          $.ajax(url, {
+            method
+          }).always((data, status) => {
+            if (status === 'success') {
+              return resolve(data);
+            }
 
-    function get(path, isXml = false) {
-      const dataType = isXml ? 'xml' : 'json';
-
-      return new Promise((resolve, reject) => {
-        $.ajax({
-          url: ENDPOINT + path,
-          dataType
-        })
-          .always((data, status) => {
-            resolve(data);
+            return reject(data);
           });
-      })
-    }
-
-    const http = {
-      bk_bookingcom: async () => {
-        return get(`/diffs/BookingCom`);
+        });
       }
-    };
 
-    async function run() {
-      const portals = await http.bk_bookingcom();
+      function getTemplate(id) {
+        return $($(id).clone().html());
+      }
 
-      for (const [name, portal] of Object.entries(portals)) {
-        for (const [category, links] of Object.entries(portal)) {
-          for (const [link, diffs] of Object.entries(links)) {
-            output(category, link, diffs);
-          }
+      async function loadPulls(resourceCode) {
+        return ajax(`${ENDPOINT}/pulls/${resourceCode}`);
+      }
+
+      async function loadComparation(pullId1, pullId2) {
+        return ajax(`${ENDPOINT}/compare/${pullId1}/${pullId2}`);
+      }
+
+      async function makePull(resourceCode) {
+        return ajax(`${ENDPOINT}/pull/${resourceCode}`);
+      }
+
+      function printPulls(pulls) {
+        pulls.forEach((pull) => {
+          const {
+            id,
+            createdAt,
+            Resource: {
+              baseUri
+            } = {}
+          } = pull;
+
+          const $template = getTemplate('#template-pull-item');
+
+          $template.find('input').attr('id', id);
+          $template.find('label').attr('for', id);
+          $template.find('label').text(`${id} - ${createdAt}`);
+          $template.find('input').attr('data-url', baseUri);
+
+          $('#pull-list').append($template);
+        });
+      }
+
+      function printContent(targetId, header, content) {
+        const $template = getTemplate('#template-content');
+
+        $template.find('.card-header').html(header);
+        $template.find('.card-body').html(content);
+
+        $(targetId).append($template);
+      }
+
+      async function loadAndPrintPulls(resourceCode) {
+        const pulls = await loadPulls(resourceCode);
+
+        printPulls(pulls);
+      }
+
+      async function loadAndPrintComparation(pullId1, pullId2, { baseUrl } = {}) {
+        const comparation = await loadComparation(pullId1, pullId2);
+        $('#content').html(`<h1>New</h1>
+      <div id="new"></div>
+      <h1>Differences</h1>
+      <div id="differences"></div>
+      <h1>Removed</h1>
+      <div id="removed"></div>`);
+
+        if (comparation.new) {
+          comparation.new.forEach((newContent) => {
+            printContent('#new', `${newContent.category} - <a href="${baseUrl}${newContent.url}" target="_blank">${newContent.url}</a>`, newContent.content);
+          });
+        }
+
+        if (comparation.diffs) {
+          comparation.diffs.forEach((diff) => {
+            const html = htmldiff(diff[0].content, diff[1].content);
+            printContent('#differences', `${diff[0].category} - <a href="${baseUrl}${diff[0].url}" target="_blank">${diff[0].url}</a>`, html);
+          });
+        }
+
+        if (comparation.removed) {
+          comparation.removed.forEach((removedContent) => {
+            printContent('#removed', `${removedContent.category} - <a href="${baseUrl}${removedContent.url}" target="_blank">${removedContent.url}</a>`, removedContent.content);
+          });
         }
       }
-    }
 
-    function output(category, link, diffs) {
-      console.log(link);
-      for (let i = 0; i <= diffs.length; i++) {
-        if (!diffs[i + 1]) {
-          break;
-        }
+      async function init() {
+        $('#compare').on('click', () => {
+          const [pull1, pull2] = $('[type=checkbox]:checked');
 
-        const now = diffs[i];
-        const before = diffs[i + 1];
-        const id = `diff-${link}-${i}`;
+          const baseUrl = pull1.getAttribute('data-url');
 
-        // Create the element
-        $('body').append(`
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">${category} - ${link}</h5>
-        <div class="diff" id="${id}"></div>
+          loadAndPrintComparation(pull1.id, pull2.id, { baseUrl });
+        });
+
+        $('#pull').on('click', async () => {
+          await makePull('bcom');
+        });
+
+        $('body').on('change', '[type="checkbox"]', function(evt) {
+          const $checked = $('[type=checkbox]:checked');
+          const meetsLimit = $checked.length >= 2;
+
+          // Disable not checked until limit is not meet
+          const $notChecked = $('[type=checkbox]:not(:checked)');
+          $notChecked.prop('disabled', meetsLimit ? 'disabled' : false);
+        });
+
+        loadAndPrintPulls('bcom');
+      }
+
+      // Settings > Languages... > Javascript > Libraries : Download
+      $(function () {
+        init();
+      });
+    </script>
+
+  <template id="template-pull-item">
+    <li class="list-group-item">
+      <div class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="check" data-url="">
+        <label class="custom-control-label" for="check"></label>
+      </div>
+    </li>
+  </template>
+
+  <template id="template-content">
+    <div class="card mt-3">
+      <div class="card-header">
+      </div>
+      <div class="card-body">
+      </div>
     </div>
-</div>`);
-
-        // Fill it
-        let output = htmldiff(now.content, before.content);
-        document.getElementById(id).innerHTML = output;
-      }
-
-
-    }
-
-    $(function () {
-      run();
-    });
-  </script>
+  </template>
 </head>
 <body>
+
+  <div class="row">
+    <div class="col-3">
+      <ul class="list-group list-group-flush" id="pull-list">
+      </ul>
+      <div style="margin: 10px;">
+        <button type="button" class="btn btn-primary btn-lg btn-block" id="compare">Compare</button>
+        <button type="button" class="btn btn-info btn-lg btn-block" id="pull">Pull</button>
+        <!-- purge, remove pulls with no diffs -->
+      </div>
+
+    </div>
+    <div class="col-8" id="content">
+    </div>
+  </div>
 </body>
 </html>

@@ -12,7 +12,9 @@ async function bootstrap() {
     await database.connect();
 
     server.listen(PORT, async () => {
+      console.log(`http://localhost:${PORT}`);
       console.log(`http://localhost:${PORT}/pull/bcom`);
+      console.log(`http://localhost:${PORT}/pulls/bcom`);
       console.log(`http://localhost:${PORT}/compare/1/2`);
     });
   } catch (error) {
